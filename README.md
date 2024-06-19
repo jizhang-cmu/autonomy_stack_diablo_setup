@@ -253,7 +253,7 @@ Please remember to power off the camera afterward to save battery.
 
 #### 4) SLAM Module
 
-In a terminal, go to the 'src/slam/Sophus' folder and install 'Sophus'.
+In a terminal, go to the 'src/slam/dependency/Sophus' folder and install 'Sophus'.
 
 ```
 mkdir build && cd build
@@ -261,7 +261,7 @@ cmake .. -DBUILD_TESTS=OFF
 make && sudo make install
 ```
 
-Then, go to the 'src/slam/gtsam' folder and install 'gtsam'. More information about [GTSAM is available here](https://gtsam.org).
+Then, go to the 'src/slam/dependency/gtsam' folder and install 'gtsam'. More information about [GTSAM is available here](https://gtsam.org).
 
 ```
 mkdir build && cd build
