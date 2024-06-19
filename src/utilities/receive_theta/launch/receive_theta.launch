@@ -1,0 +1,12 @@
+<launch>
+
+  <arg name="showImage" default="false"/>
+
+  <node pkg="receive_theta" exec="receiveTheta" name="receiveTheta" output="screen">
+    <param name="imuTopicName" value="/imu/data" />
+    <param name="topBottonMargin" value="160" />
+    <param name="imageLatency" value="0.21" />
+    <param name="showImage" value="$(var showImage)" />
+  </node>
+
+</launch>

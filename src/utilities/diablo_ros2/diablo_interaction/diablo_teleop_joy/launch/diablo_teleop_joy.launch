@@ -1,0 +1,13 @@
+<launch>
+
+  <node pkg="diablo_ctrl" exec="diablo_ctrl_node" name="diablo_ctrl_node" output="screen"/>
+
+  <node pkg="diablo_teleop_joy" exec="diabloTeleopJoy" name="diabloTeleopJoy" output="screen"/>
+
+  <node pkg="joy" exec="joy_node" name="ps3_joy" output="screen" >
+    <param name="dev" value="/dev/input/js0" />
+    <param name="deadzone" value="0.12" />
+    <param name="autorepeat_rate" value="0.0" />
+  </node>
+
+</launch>
