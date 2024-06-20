@@ -90,7 +90,7 @@ def generate_launch_description():
 
     
     return LaunchDescription([
-        launch_ros.actions.SetParameter(name='use_sim_time', value=True),
+        launch_ros.actions.SetParameter(name='use_sim_time', value='false'),
         config_path_arg,
         calib_path_arg,
         odom_topic_arg,
