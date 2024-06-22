@@ -4,7 +4,7 @@ far_planner:
     main_run_freq: 5.0
     voxel_dim: 0.1  # Unit: meter
     robot_dim: 0.5   # Unit: meter
-    vehicle_height: 0.5  # Unit: meter
+    vehicle_height: 0.6  # Unit: meter
     sensor_range: 15.0  # Unit: meter
     terrain_range: 7.5   # Unit: meter
     local_planner_range: 2.5   # Unit: meter
@@ -22,26 +22,26 @@ far_planner:
     graph_msger/robot_id: 1  # graph from robot id "0" is extracted from files
 
     # Map Handler Params
-    map_handler/floor_height: 2.0    # Unit: meter
-    map_handler/cell_length: 2.5    # Unit: meter
+    map_handler/floor_height: 1.0    # Unit: meter
+    map_handler/cell_length: 1.0    # Unit: meter
     map_handler/map_grid_max_length: 200.0  # Unit: meter
     map_handler/map_grad_max_height: 10.0   # Unit: meter
 
     # Dynamic Planner Utility Params
     util/angle_noise: 15.0  # Unit: degree
     util/accept_max_align_angle: 4.0   # Unit: degree
-    util/obs_inflate_size: 2
+    util/obs_inflate_size: 1
     util/new_intensity_thred: 2.0
     util/terrain_free_Z: 0.15
     util/dyosb_update_thred: 4
     util/new_point_counter: 5
-    util/dynamic_obs_dacay_time: 10.0  # Unit: second
+    util/dynamic_obs_dacay_time: 2.0  # Unit: second
     util/new_points_decay_time: 1.0   # Unit: second
 
     # Dynamic Graph Params
     graph/connect_votes_size: 10        
     graph/clear_dumper_thred: 4
-    graph/node_finalize_thred: 6
+    graph/node_finalize_thred: 12
     graph/filter_pool_size: 12
 
     # Corner Detector Params

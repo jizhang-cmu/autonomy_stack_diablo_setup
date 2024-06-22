@@ -1,10 +1,10 @@
 far_planner:
   ros__parameters:
     # Dynamic Planner Default Params
-    main_run_freq: 2.5
+    main_run_freq: 5.0
     voxel_dim: 0.15  # Unit: meter
-    robot_dim: 1.2   # Unit: meter
-    vehicle_height: 0.75  # Unit: meter
+    robot_dim: 0.8   # Unit: meter
+    vehicle_height: 0.6  # Unit: meter
     sensor_range: 30.0  # Unit: meter
     terrain_range: 15.0  # Unit: meter
     local_planner_range: 5.0   # Unit: meter
@@ -14,7 +14,7 @@ far_planner:
     is_opencv_visual: false # Obstacle Image Display
     is_static_env: false
     is_pub_boundary: false
-    is_debug_output: true
+    is_debug_output: false
     is_attempt_autoswitch: true  # Auto switch to attemptable navigation
     world_frame: map
 
@@ -35,7 +35,7 @@ far_planner:
     util/terrain_free_Z: 0.2
     util/dyosb_update_thred: 4
     util/new_point_counter: 5
-    util/dynamic_obs_dacay_time: 10.0 # Unit: second
+    util/dynamic_obs_dacay_time: 2.0 # Unit: second
     util/new_points_decay_time: 1.0  # Unit: second
 
     # Dynamic Graph Params
