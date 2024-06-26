@@ -11,6 +11,7 @@
 
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/compressed_image.hpp>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
@@ -30,6 +31,8 @@ Mat image, imageSmall;
 string imuTopicName = "/imu/data";
 int topBottonMargin = 160;
 double imageLatency = 0;
+int compQuality = 50;
+bool alwaysPubCompImage = false;
 bool showImage = false;
 
 double systemToImuTime = 0;
@@ -51,22 +54,32 @@ int main(int argc, char** argv)
   nh->declare_parameter<string>("imuTopicName", imuTopicName);
   nh->declare_parameter<int>("topBottonMargin", topBottonMargin);
   nh->declare_parameter<double>("imageLatency", imageLatency);
+  nh->declare_parameter<int>("compQuality", compQuality);
+  nh->declare_parameter<bool>("alwaysPubCompImage", alwaysPubCompImage);
   nh->declare_parameter<bool>("showImage", showImage);
 
   nh->get_parameter("imuTopicName", imuTopicName);
   nh->get_parameter("topBottonMargin", topBottonMargin);
   nh->get_parameter("imageLatency", imageLatency);
+  nh->get_parameter("compQuality", compQuality);
+  nh->get_parameter("alwaysPubCompImage", alwaysPubCompImage);
   nh->get_parameter("showImage", showImage);
 
   auto imuSub = nh->create_subscription<sensor_msgs::msg::Imu>(imuTopicName, 50, imuHandler);
 
   auto imagePub = nh->create_publisher<sensor_msgs::msg::Image>("/camera/image", 2);
 
+  auto compressedPub = nh->create_publisher<sensor_msgs::msg::CompressedImage>("/camera/image/compressed", 2);
+
   VideoCapture video("thetauvcsrc ! decodebin ! videoconvert ! appsink");
   if(!video.isOpened()) {
     printf ("\nCannot open device, exit.\n\n");
     return 0;
   }
+
+  std::vector<int> compression_params;
+  compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+  compression_params.push_back(compQuality);
 
   while (rclcpp::ok()) {
     video >> image;
@@ -86,6 +99,16 @@ int main(int argc, char** argv)
     header.stamp = rclcpp::Time(static_cast<uint64_t>(imageTime * 1e9));
     sensor_msgs::msg::Image::SharedPtr imagePtr = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
     imagePub->publish(*imagePtr);
+
+    if (compressedPub->get_subscription_count() > 0 || alwaysPubCompImage) {
+      std::vector<uint8_t> jpeg_image;
+      cv::imencode(".jpg", image, jpeg_image, compression_params);
+      sensor_msgs::msg::CompressedImage compressed_msg;
+      compressed_msg.header = header;
+      compressed_msg.format = "jpeg";
+      compressed_msg.data = jpeg_image;
+      compressedPub->publish(compressed_msg);
+    }
 
     if (showImage) {
       resize(image, imageSmall, Size(image.cols / 2, image.rows / 2));

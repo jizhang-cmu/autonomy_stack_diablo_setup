@@ -398,6 +398,28 @@ ros2 bag play 'bagfolder_path/bagfile_name.db3'
 
 - To save a point cloud file during a run, users can set 'savePcd = true' in the 'src/base_autonomy/visualization_tools/launch/visualization_tools.launch' file. A 'pointcloud_xxx.txt' file is saved in the 'src/base_autonomy/vehicle_simulator/log' folder together with a trajectory file, where 'xxx' is the timestamp. The format is described in the 'readme.txt' file in the same folder.
 
+## Extension - WiFi Transmission
+
+The extension wirelessly transmits data to a base station computer installed with Ubuntu 22.04 and [ROS2 Humble](https://docs.ros.org/en/humble/Installation.html), allowing users to run advanced AI models on the base station computer with powerful GPUs, for example. The setup involves a high-speed WiFi router. The model tested is an [ASUS RT-AX55 WiFi router](https://www.amazon.com/ASUS-AX1800-WiFi-Router-RT-AX55/dp/B08J6CFM39). Configure the router and set up the subnet. We recommend using automatic IP and setting the subnet address to 10.1.1.x (please avoid the 192.168.1.x subnet as being used by the Mid-360 lidar, and do not connect the router to the internet). Connect the base station computer to the router with an Ethernet cable and the Diablo processing computer to the router over WiFi, both using 'Automatic (DHCP)'. Make sure both computers are on the same subnet and can ping each other. On the Diablo processing computer, use the command lines below to increase the message buffer size. Then, you can use `sysctl net.core.rmem_max` and `sysctl net.core.wmem_max` to check the buffer size.
+```
+sudo sysctl -w net.core.rmem_max=67108864 net.core.rmem_default=67108864
+sudo sysctl -w net.core.wmem_max=67108864 net.core.wmem_default=67108864
+```
+Start the Diablo system. On the base station computer, users should be able to list all the topics using `ros2 topic list`. In a terminal on the Diablo processing computer, go to the repository folder, source the ROS workspace, and launch the domain bridge. This shares a few topics to the base station computer domain (ROS_DOMAIN_ID=1).
+```
+source install/setup.bash
+ros2 launch domain_bridge diablo_bridge.launch
+```
+In a terminal on the base station computer, use `export ROS_DOMAIN_ID=1` followed by `ros2 topic list` to list the topics shared to the base station computer domain. Now, copy the 'base_station' folder in the repository to the base station computer. In a terminal, go to the folder and use the command line below to launch RVIZ and view data transmitted over the network.
+```
+./base_station.sh
+```
+Users can set up AI models on the base station computer to process the transmitted data and send waypoints back to guide the navigation. When launching the AI model, please set `export ROS_DOMAIN_ID=1` in the terminal. Note that the data transmission sends compressed images to the base station computer. The images are then uncompressed in the 'base_station.sh' script. Please make sure to subscribe to the uncompressed images on the '/camera/image/transmitted' topic. Subscribing to the original images on the '/camera/image' topic can overload the network. If experiencing high image latency over the network, users can try reducing 'compQuality' in the 'src/utilities/receive_theta/launch/receive_theta.launch' file. If accessing internet on the base station computer at the same time, users can connect the base station computer to internet over WiFi and then in the wired network settings, under IPv4 tab, check "use this connection only for resources on its network".
+
+<p align="center">
+  <img src="img/base_station.jpg" alt="Base Station" width="80%"/>
+</p>
+
 ## About SLAM Module
 
 The full-blown ARISE SLAM fuses IMU, image, and scan data in an adaptive pipeline. A learning-based IMU model seeds image and scan processing, and the latter inversely strengthens the IMU model adapting it to the current settings. When sensing degradation happens in the environment, the pipeline automatically and dynamically reconfigures to keep itself robust. Especially, when both image and scan processing degrades, the pipeline reduces to the IMU model and relies on it to survive. This repository contains a slimmed version of ARISE SLAM for lightweight processing, adapted to the Mid-360 lidar. More information about the full-blown version will be released soon.
@@ -410,7 +432,7 @@ The full-blown ARISE SLAM fuses IMU, image, and scan data in an adaptive pipelin
 
 The project is sponsored by the [National Robotics Engineering Center](https://www.nrec.ri.cmu.edu) at Carnegie Mellon University.
 
-[gtsam](https://gtsam.org), [Sophus](http://github.com/strasdat/Sophus.git), [livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2), [Livox-SDK2](https://github.com/Livox-SDK/Livox-SDK2), [libuvc-theta](https://github.com/ricohapi/libuvc-theta), [gstthetauvc](https://github.com/nickel110/gstthetauvc), [diablo_ros2](https://github.com/DDTRobot/diablo_ros2), and [ROS-TCP-Endpoint](https://github.com/Unity-Technologies/ROS-TCP-Endpoint) packages are from open-source releases.
+[gtsam](https://gtsam.org), [Sophus](http://github.com/strasdat/Sophus.git), [domain_bridge](https://github.com/ros2/domain_bridge), [livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2), [Livox-SDK2](https://github.com/Livox-SDK/Livox-SDK2), [libuvc-theta](https://github.com/ricohapi/libuvc-theta), [gstthetauvc](https://github.com/nickel110/gstthetauvc), [diablo_ros2](https://github.com/DDTRobot/diablo_ros2), and [ROS-TCP-Endpoint](https://github.com/Unity-Technologies/ROS-TCP-Endpoint) packages are from open-source releases.
 
 ## Relevant Links
 

@@ -6,6 +6,8 @@
     <param name="imuTopicName" value="/imu/data" />
     <param name="topBottonMargin" value="160" />
     <param name="imageLatency" value="0.21" />
+    <param name="compQuality" value="50" />
+    <param name="alwaysPubCompImage" value="false" />
     <param name="showImage" value="$(var showImage)" />
   </node>
 
