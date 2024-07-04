@@ -5,7 +5,7 @@
   <version>0.0.0</version>
 
   <description>
-    This is an implentation of arise_slam, which is based on LOAM algorithm.
+    This is an implementation of arise_slam, which is based on LOAM algorithm.
     LOAM is described in the following paper:
     J. Zhang and S. Singh. LOAM: Lidar Odometry and Mapping in Real-time.
       Robotics: Science and Systems Conference (RSS). Berkeley, CA, July 2014.
@@ -13,7 +13,7 @@
 
   <maintainer email="shibowing@gmail.com">Shibo Zhao</maintainer>
 
-  <license>GPLv3</license>
+  <license>BSD</license>
 
   <author email="shibowing@gmail.com">Shibo Zhao</author>
   
