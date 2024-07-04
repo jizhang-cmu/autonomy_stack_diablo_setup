@@ -11,12 +11,10 @@
       Robotics: Science and Systems Conference (RSS). Berkeley, CA, July 2014.
   </description>
 
-  <maintainer email="shibowing@gmail.com">Shibo Zhao</maintainer>
+  <maintainer email="guofeic@andrew.cmu.edu">Guofei Chen</maintainer>
 
   <license>BSD</license>
-
-  <author email="shibowing@gmail.com">Shibo Zhao</author>
-  
+ 
   <buildtool_depend>amend_cmake</buildtool_depend>
 
   <depend>rclcpp</depend>
