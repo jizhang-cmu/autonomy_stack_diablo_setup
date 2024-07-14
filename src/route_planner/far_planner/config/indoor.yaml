@@ -41,7 +41,7 @@ far_planner:
     # Dynamic Graph Params
     graph/connect_votes_size: 10        
     graph/clear_dumper_thred: 4
-    graph/node_finalize_thred: 12
+    graph/node_finalize_thred: 6
     graph/filter_pool_size: 12
 
     # Corner Detector Params
