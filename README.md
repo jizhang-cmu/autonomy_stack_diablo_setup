@@ -185,11 +185,13 @@ sudo apt install ros-jazzy-desktop-full ros-jazzy-pcl-ros libpcl-dev git cmake l
 #### 2) Mid-360 Lidar
 
 First, clone the open-source repository and checkout the 'jazzy' branch.
+
 ```
 git clone https://github.com/jizhang-cmu/autonomy_stack_diablo_setup.git
 cd autonomy_stack_diablo_setup
 git checkout jazzy
 ```
+
 Next, install ‘Livox-SDK2’. In a terminal, go to the 'src/utilities/livox_ros_driver2/Livox-SDK2' folder in the repository and use the command lines below. More information about [‘Livox-SDK2’ can be found here](https://github.com/Livox-SDK/Livox-SDK2).
 
 ```
