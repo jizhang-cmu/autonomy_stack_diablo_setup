@@ -24,9 +24,10 @@ Clone the open-source repository.
 git clone https://github.com/jizhang-cmu/autonomy_stack_diablo_setup.git
 
 ```
-In a terminal, go to the folder and compile. Note that this skips the SLAM module, Mid-360 lidar driver, and Theta Z1 camera driver. The three packages are not needed for simulation.
+In a terminal, go to the folder, checkout the 'humble' branch, and compile. Note that this skips the SLAM module, Mid-360 lidar driver, and Theta Z1 camera driver. The three packages are not needed for simulation.
 ```
 cd autonomy_stack_diablo_setup
+git checkout humble
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-skip arise_slam_mid360 arise_slam_mid360_msgs livox_ros_driver2 receive_theta
 ```
 Download a [Unity environment model for Diablo setup](https://drive.google.com/drive/folders/1vAsyT_g1kLnexpgNawolVu3CO2NHYDB-?usp=sharing) and unzip the files to the 'src/base_autonomy/vehicle_simulator/mesh/unity' folder. The environment model files should look like below. For computers without a powerful GPU, please try the 'without_360_camera' version for a higher rendering rate.
@@ -185,11 +186,14 @@ pip install transforms3d pyyaml
 
 #### 2) Mid-360 Lidar
 
-First, clone the open-source repository.
-```
-git clone https://github.com/jizhang-cmu/autonomy_stack_diablo_setup.git
+First, clone the open-source repository and checkout the 'humble' branch.
 
 ```
+git clone https://github.com/jizhang-cmu/autonomy_stack_diablo_setup.git
+cd autonomy_stack_diablo_setup
+git checkout humble
+```
+
 Next, install ‘Livox-SDK2’. In a terminal, go to the 'src/utilities/livox_ros_driver2/Livox-SDK2' folder in the repository and use the command lines below. More information about [‘Livox-SDK2’ can be found here](https://github.com/Livox-SDK/Livox-SDK2).
 
 ```
