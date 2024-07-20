@@ -8,25 +8,25 @@ The repository contains the full autonomy stack for a system setup based on the 
 
 ### Base Autonomy
 
-The system is integrated with [Unity](https://unity.com) environment models for simulation. The repository has been tested in Ubuntu 22.04 with [ROS2 Humble](https://docs.ros.org/en/humble/Installation.html). After installing ROS2 Humble, add 'source /opt/ros/humble/setup.bash' to the '~/.bashrc' file and `source ~/.bashrc` in the terminal to engage the installation.
+The system is integrated with [Unity](https://unity.com) environment models for simulation. The repository has been tested in Ubuntu 24.04 with [ROS2 Jazzy](https://docs.ros.org/en/jazzy/Installation.html). After installing ROS2 Jazzy, add 'source /opt/ros/jazzy/setup.bash' to the '~/.bashrc' file and `source ~/.bashrc` in the terminal to engage the installation.
 ```
-echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 ```
 Install dependencies with the command lines below.
 ```
 sudo apt update
-sudo apt install libusb-dev ros-humble-desktop-full ros-humble-tf-transformations ros-humble-joy python3-colcon-common-extensions python-is-python3 python3-pip git
-pip install transforms3d pyyaml
+sudo apt install ros-jazzy-desktop-full ros-jazzy-pcl-ros libpcl-dev git
 ```
 Clone the open-source repository.
 ```
 git clone https://github.com/jizhang-cmu/autonomy_stack_diablo_setup.git
 
 ```
-In a terminal, go to the folder and compile. Note that this skips the SLAM module, Mid-360 lidar driver, and Theta Z1 camera driver. The three packages are not needed for simulation.
+In a terminal, go to the folder, checkout the 'jazzy' branch, and compile. Note that this skips the SLAM module, Mid-360 lidar driver, and Theta Z1 camera driver. The three packages are not needed for simulation.
 ```
 cd autonomy_stack_diablo_setup
+git checkout jazzy
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-skip arise_slam_mid360 arise_slam_mid360_msgs livox_ros_driver2 receive_theta
 ```
 Download a [Unity environment model for Diablo setup](https://drive.google.com/drive/folders/1vAsyT_g1kLnexpgNawolVu3CO2NHYDB-?usp=sharing) and unzip the files to the 'src/base_autonomy/vehicle_simulator/mesh/unity' folder. The environment model files should look like below. For computers without a powerful GPU, please try the 'without_360_camera' version for a higher rendering rate.
@@ -104,7 +104,7 @@ Click the 'Resume Navigation to Goal' button in RVIZ to start the exploration. U
 
 We aim to provide a simple and easy-to-build hardware setup with fewer custom-fabricated/modified parts. We use mainstream electronics available on the consumer market. The setup includes sensors, a processing computer, a wireless HDMI transmitter, a pair of wireless keyboard and mouse, and batteries to power up the electronics without draining Diablo's drive chain battery. The hardware setup wirelessly transmits signals to a control station, allowing users to work with Diablo in a way as a desktop computer - the computer moves around in the environment and communicates with the control station wirelessly. The two batteries are hot-swappable and can be unplugged one at a time without powering down the system.
 
-The hardware setup includes a few custom-made parts. The sensor brackets are custom-fabricated carbon fiber parts. Please find [here the CAD models of the carbon fiber brackets](https://github.com/jizhang-cmu/autonomy_stack_diablo_setup/tree/humble/sensor_brackets). Mounting the electronics requires a custom-made carbon fiber board to replace the original top board of Diablo. The CAD model of the top board is provided with the carbon fiber brackets. The top board is lifted up for 3cm using 8x standoffs. When mounting the NUC i7 computer, take the bottom cover off the computer and use the 4x threaded holes to mount the computer upside down underneath the top board. The antennas of the wireless HDMI transmitter are extended using antenna extension cables. The Mid-360 lidar cable and the two battery adapter cables are custom-modified with 5.5mm x 2.1mm and 5.5mm x 2.5mm DC connectors attached. Further, the cable assembly from the motor controller board on Diablo is unplugged from the built-in Raspberry Pi computer with the Raspberry Pi computer removed. The cable assembly is then connected to the NUC i7 processing computer through a USB to TTL converter cable and three breakaway headers. The connection is for Diablo motion control. After wiring up the cables, you may apply hot glue to some of the connectors. Please see the images below for detailed information about the hardware setup.
+The hardware setup includes a few custom-made parts. The sensor brackets are custom-fabricated carbon fiber parts. Please find [here the CAD models of the carbon fiber brackets](https://github.com/jizhang-cmu/autonomy_stack_diablo_setup/tree/jazzy/sensor_brackets). Mounting the electronics requires a custom-made carbon fiber board to replace the original top board of Diablo. The CAD model of the top board is provided with the carbon fiber brackets. The top board is lifted up for 3cm using 8x standoffs. When mounting the NUC i7 computer, take the bottom cover off the computer and use the 4x threaded holes to mount the computer upside down underneath the top board. The antennas of the wireless HDMI transmitter are extended using antenna extension cables. The Mid-360 lidar cable and the two battery adapter cables are custom-modified with 5.5mm x 2.1mm and 5.5mm x 2.5mm DC connectors attached. Further, the cable assembly from the motor controller board on Diablo is unplugged from the built-in Raspberry Pi computer with the Raspberry Pi computer removed. The cable assembly is then connected to the NUC i7 processing computer through a USB to TTL converter cable and three breakaway headers. The connection is for Diablo motion control. After wiring up the cables, you may apply hot glue to some of the connectors. Please see the images below for detailed information about the hardware setup.
 
 <p align="center">
   <img src="img/under_cover_front.jpg" alt="Under Cover Front" width="56.1%"/>
@@ -164,10 +164,10 @@ Below is a list of the hardware items with an overall price of about $3K (not in
 
 ### System Setup
 
-On the processing computer, install [Ubuntu 22.04](https://releases.ubuntu.com/jammy), connect the computer to Internet, and install [ROS2 Humble](https://docs.ros.org/en/humble/Installation.html). After installation of ROS2 Humble, add 'source /opt/ros/humble/setup.bash' to the '~/.bashrc' file and `source ~/.bashrc` in the terminal to engage the installation, or use the command lines below. Add user to the dialout group by `sudo adduser 'username' dialout`. Then, reboot the computer. Optionally, configure BIOS and set the computer to automatically boot when power is supplied
+On the processing computer, install [Ubuntu 24.04](https://releases.ubuntu.com/noble), connect the computer to Internet, and install [ROS2 Jazzy](https://docs.ros.org/en/jazzy/Installation.html). After installation of ROS2 Jazzy, add 'source /opt/ros/jazzy/setup.bash' to the '~/.bashrc' file and `source ~/.bashrc` in the terminal to engage the installation, or use the command lines below. Add user to the dialout group by `sudo adduser 'username' dialout`. Then, reboot the computer. Optionally, configure BIOS and set the computer to automatically boot when power is supplied
 
 ```
-echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 sudo adduser 'username' dialout
 sudo reboot now
@@ -179,16 +179,16 @@ Please install dependencies with the command lines below before proceeding to th
 
 ```
 sudo apt update
-sudo apt install libusb-dev ros-humble-desktop-full ros-humble-tf-transformations ros-humble-joy python3-colcon-common-extensions python-is-python3 python3-pip git libceres-dev libgstreamer1.0-0 libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
-pip install transforms3d pyyaml
+sudo apt install ros-jazzy-desktop-full ros-jazzy-pcl-ros libpcl-dev git cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libgstreamer1.0-0 libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
 ```
 
 #### 2) Mid-360 Lidar
 
-First, clone the open-source repository.
+First, clone the open-source repository, go to the folder, and checkout the 'jazzy' branch.
 ```
 git clone https://github.com/jizhang-cmu/autonomy_stack_diablo_setup.git
-
+cd autonomy_stack_diablo_setup
+git checkout jazzy
 ```
 Next, install ‘Livox-SDK2’. In a terminal, go to the 'src/utilities/livox_ros_driver2/Livox-SDK2' folder in the repository and use the command lines below. More information about [‘Livox-SDK2’ can be found here](https://github.com/Livox-SDK/Livox-SDK2).
 
@@ -261,7 +261,15 @@ cmake .. -DBUILD_TESTS=OFF
 make && sudo make install
 ```
 
-Then, go to the 'src/slam/dependency/gtsam' folder and install 'gtsam'. More information about [GTSAM is available here](https://gtsam.org).
+Then, go to the 'src/slam/dependency/ceres-solver' folder and install 'Ceres Solver'. More information about [Ceres Solver is available here](http://ceres-solver.org).
+
+```
+mkdir build && cd build
+cmake ..
+make -j6 && sudo make install
+```
+
+Next, go to the 'src/slam/dependency/gtsam' folder and install 'gtsam'. More information about [GTSAM is available here](https://gtsam.org).
 
 ```
 mkdir build && cd build
@@ -374,6 +382,8 @@ ros2 bag play 'bagfolder_path/bagfile_name.db3'
 
 ## Notes
 
+- In ROS2 Jazzy, RVIZ is known to have issues with wayland. Use `echo $XDG_SESSION_TYPE` to check if wayland is being used. If yes, install X11 using `sudo apt-get install xorg openbox`. Then, in the '/etc/gdm3/custom.conf' file, uncomment 'WaylandEnable=false' and reboot.
+
 - In simulation, the bridge between Unity and the system is not completely stable. At the system launch, if you see an error regarding 'ros_tcp_endpoint', simply try for a second time.
 
 - If the PS3 controller is not recognized correctly at the power on of the processing computer, unplug and re-plug in the USB dongle.
@@ -400,7 +410,7 @@ ros2 bag play 'bagfolder_path/bagfile_name.db3'
 
 ## Extension - WiFi Transmission
 
-The extension wirelessly transmits data to a base station computer installed with Ubuntu 22.04 and [ROS2 Humble](https://docs.ros.org/en/humble/Installation.html), allowing users to run advanced AI models on the base station computer with powerful GPUs, for example. The setup involves a high-speed WiFi router. The model tested is an [ASUS RT-AX55 WiFi router](https://www.amazon.com/ASUS-AX1800-WiFi-Router-RT-AX55/dp/B08J6CFM39). Configure the router and set up the subnet. We recommend using automatic IP and setting the subnet address to 10.1.1.x (please avoid the 192.168.1.x subnet as being used by the Mid-360 lidar, and do not connect the router to the internet). Connect the base station computer to the router with an Ethernet cable and the Diablo processing computer to the router over WiFi, both using 'Automatic (DHCP)'. Make sure both computers are on the same subnet and can ping each other. On the Diablo processing computer, use the command lines below to increase the message buffer size. Then, you can use `sysctl net.core.rmem_max` and `sysctl net.core.wmem_max` to check the buffer size.
+The extension wirelessly transmits data to a base station computer installed with Ubuntu 24.04 and [ROS2 Jazzy](https://docs.ros.org/en/jazzy/Installation.html), allowing users to run advanced AI models on the base station computer with powerful GPUs, for example. The setup involves a high-speed WiFi router. The model tested is an [ASUS RT-AX55 WiFi router](https://www.amazon.com/ASUS-AX1800-WiFi-Router-RT-AX55/dp/B08J6CFM39). Configure the router and set up the subnet. We recommend using automatic IP and setting the subnet address to 10.1.1.x (please avoid the 192.168.1.x subnet as being used by the Mid-360 lidar, and do not connect the router to the internet). Connect the base station computer to the router with an Ethernet cable and the Diablo processing computer to the router over WiFi, both using 'Automatic (DHCP)'. Make sure both computers are on the same subnet and can ping each other. On the Diablo processing computer, use the command lines below to increase the message buffer size. Then, you can use `sysctl net.core.rmem_max` and `sysctl net.core.wmem_max` to check the buffer size.
 ```
 sudo sysctl -w net.core.rmem_max=67108864 net.core.rmem_default=67108864
 sudo sysctl -w net.core.wmem_max=67108864 net.core.wmem_default=67108864
@@ -432,7 +442,7 @@ The full-blown ARISE SLAM fuses IMU, image, and scan data in an adaptive pipelin
 
 The project is sponsored by the [National Robotics Engineering Center](https://www.nrec.ri.cmu.edu) at Carnegie Mellon University.
 
-[gtsam](https://gtsam.org), [Sophus](http://github.com/strasdat/Sophus.git), [domain_bridge](https://github.com/ros2/domain_bridge), [livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2), [Livox-SDK2](https://github.com/Livox-SDK/Livox-SDK2), [libuvc-theta](https://github.com/ricohapi/libuvc-theta), [gstthetauvc](https://github.com/nickel110/gstthetauvc), [diablo_ros2](https://github.com/DDTRobot/diablo_ros2), and [ROS-TCP-Endpoint](https://github.com/Unity-Technologies/ROS-TCP-Endpoint) packages are from open-source releases.
+[gtsam](https://gtsam.org), [Ceres Solver](http://ceres-solver.org), [Sophus](http://github.com/strasdat/Sophus.git), [domain_bridge](https://github.com/ros2/domain_bridge), [livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2), [Livox-SDK2](https://github.com/Livox-SDK/Livox-SDK2), [libuvc-theta](https://github.com/ricohapi/libuvc-theta), [gstthetauvc](https://github.com/nickel110/gstthetauvc), [diablo_ros2](https://github.com/DDTRobot/diablo_ros2), and [ROS-TCP-Endpoint](https://github.com/Unity-Technologies/ROS-TCP-Endpoint) packages are from open-source releases.
 
 ## Relevant Links
 
