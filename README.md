@@ -184,7 +184,7 @@ sudo apt install ros-jazzy-desktop-full ros-jazzy-pcl-ros libpcl-dev git cmake l
 
 #### 2) Mid-360 Lidar
 
-First, clone the open-source repository, go to the folder, and checkout the 'jazzy' branch.
+First, clone the open-source repository and checkout the 'jazzy' branch.
 ```
 git clone https://github.com/jizhang-cmu/autonomy_stack_diablo_setup.git
 cd autonomy_stack_diablo_setup
