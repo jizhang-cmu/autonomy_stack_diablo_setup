@@ -373,11 +373,11 @@ For exploration planner:
 ./system_bagfile_with_exploration_planner.sh
 ```
 
-In another terminal, source the ROS workspace (required) and play the bagfile.
+In another terminal, source the ROS workspace (required for .db3 bagfiles) and play the bagfile.
 
 ```
 source install/setup.bash
-ros2 bag play 'bagfolder_path/bagfile_name.db3'
+ros2 bag play 'bagfolder_path/bagfile_name.mcap (or bagfile_name.db3)'
 ```
 
 [A few example bagfiles are provided here](https://drive.google.com/drive/folders/1vAsyT_g1kLnexpgNawolVu3CO2NHYDB-?usp=sharing). Users can use the bagfiles to test the system offline without accessing the real-robot setup. Note that for bagfile processing, please follow the System Setup section above to compile the repository fully.
