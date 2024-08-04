@@ -300,6 +300,7 @@ int main(int argc, char** argv)
   overallMapDwzFilter.filter(*overallMapCloudDwz);
   overallMapCloud->clear();
 
+  int overallMapCloudDwzSize = overallMapCloudDwz->points.size();
   pcl::toROSMsg(*overallMapCloudDwz, overallMap2);
 
   time_t logTime = time(0);
@@ -320,9 +321,11 @@ int main(int argc, char** argv)
     rclcpp::spin_some(nh);
     overallMapDisplayCount++;
     if (overallMapDisplayCount >= 100 * overallMapDisplayInterval) {
-      overallMap2.header.stamp = rclcpp::Time(static_cast<uint64_t>(systemTime * 1e9));
-      overallMap2.header.frame_id = "map";
-      pubOverallMap->publish(overallMap2);
+      if (overallMapCloudDwzSize > 0) {
+        overallMap2.header.stamp = rclcpp::Time(static_cast<uint64_t>(systemTime * 1e9));
+        overallMap2.header.frame_id = "map";
+        pubOverallMap->publish(overallMap2);
+      }
 
       overallMapDisplayCount = 0;
     }
