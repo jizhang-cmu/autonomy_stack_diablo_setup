@@ -29,7 +29,7 @@ namespace arise_slam {
         T_w_lidar = position;
         Transformd T_w_inital_guess(T_w_lidar);
 
-        // std::cout<<"T_w_lidar: "<<T_w_inital_guess<<std::endl;
+       
 
         int Good_Planner_Feature_Num = 0;
 
@@ -75,8 +75,10 @@ namespace arise_slam {
 
 
             this->pos_in_localmap = localMap.shiftMap(T_w_lidar.pos);
+            T_w_curr=this->T_w_lidar.pos;
+            Q_w_curr=T_w_lidar.rot;
             
-            
+
             auto[edgePointsFromMapNum, planarPointsFromMapNum] =
             localMap.get5x5LocalMapFeatureSize(this->pos_in_localmap);
         
@@ -87,19 +89,6 @@ namespace arise_slam {
             stats.laser_cloud_corner_stack_num = EdgesPoints->size();
             stats.laser_cloud_surf_stack_num = PlanarsPoints->size();
             stats.iterations.clear();
-
-
-            if (OptSet.debug_view_enabled)
-            {
-                debug_view->addOptimizationIterationPose(T_w_lidar, timeLaserOdometry);
-                debug_view->publishFeaturesFromScan(*EdgesPoints, *PlanarsPoints,
-                                                    timeLaserOdometry);
-                debug_view->publishFeaturesFromMap(localMap.get_5x5_localmap_corner(pos_in_localmap),
-                                                   localMap.get_5x5_localmap_surf(pos_in_localmap),
-                                                   timeLaserOdometry);
-                debug_view->clearCorrespondences();
-            }
-
 
             TicToc t_opt;
 
@@ -112,8 +101,7 @@ namespace arise_slam {
                     arise_slam_mid360_msgs::msg::IterationStats iter_stats;
                     ResetDistanceParameters();
                     Good_Planner_Feature_Num = 0;
-                    // if(OptSet.debug_view_enabled)
-                    //     debug_view->clearCorrespondences();
+             
                      //TODO: Achieve the TBB to acclerate the process
                     if (not this->EdgesPoints->empty()) {
                     //     auto compute_func = [this](const tbb::blocked_range<size_t> &range) {
@@ -159,6 +147,7 @@ namespace arise_slam {
                                     this->PlanarsPoints->points[planar_index];
                             auto optimize_data = this->ComputePlaneDistanceParameters(
                                     this->localMap, currentPoint);
+
                             MatchingResult rejection_index = optimize_data.match_result;
                             if (rejection_index == MatchingResult::SUCCESS) {
                                 OptimizationData.push_back(optimize_data);
@@ -177,7 +166,7 @@ namespace arise_slam {
                        // tbb::parallel_for(range, compute_func);
                     }  // loop  planar feature end
 
-
+                   
                    if(icpIter==0)
                    {
                    stats.plane_match_success=MatchRejectionHistogramPlane.at(0);
@@ -190,22 +179,22 @@ namespace arise_slam {
                    }
 
 
-                //    LOG(Debug)<<"SUCCESS:"<<MatchRejectionHistogramLine.at(0)<<std::endl;
-                //    LOG(Debug)<<"NOT_ENOUGH_NEIGHBORS:"<<MatchRejectionHistogramLine.at(1)<<std::endl;
-                //    LOG(Debug)<<"NEIGHBORS_TOO_FAR:"<<MatchRejectionHistogramLine.at(2)<<std::endl;
-                //    LOG(Debug)<<"BAD_PCA_STRUCTURE:"<<MatchRejectionHistogramLine.at(3)<<std::endl;
-                //    LOG(Debug)<<"INVAVLID_NUMERICAL:"<<MatchRejectionHistogramLine.at(4)<<std::endl;
-                //    LOG(Debug)<<"MSE_TOO_LARGE:"<<MatchRejectionHistogramLine.at(5)<<std::endl;
-                //    LOG(Debug)<<"UNKNON:"<<MatchRejectionHistogramLine.at(6)<<std::endl;
+                //    std::cout<<"SUCCESS:"<<MatchRejectionHistogramLine.at(0)<<std::endl;
+                //    std::cout<<"NOT_ENOUGH_NEIGHBORS:"<<MatchRejectionHistogramLine.at(1)<<std::endl;
+                //    std::cout<<"NEIGHBORS_TOO_FAR:"<<MatchRejectionHistogramLine.at(2)<<std::endl;
+                //    std::cout<<"BAD_PCA_STRUCTURE:"<<MatchRejectionHistogramLine.at(3)<<std::endl;
+                //    std::cout<<"INVAVLID_NUMERICAL:"<<MatchRejectionHistogramLine.at(4)<<std::endl;
+                //    std::cout<<"MSE_TOO_LARGE:"<<MatchRejectionHistogramLine.at(5)<<std::endl;
+                //    std::cout<<"UNKNON:"<<MatchRejectionHistogramLine.at(6)<<std::endl;
 
-                    // step construct ceres optimization problem
-
-                    //                double lossScale = this->LocalizationInitLossScale +
-                    //                static_cast<double>(icpIter) *
-                    //                        (this->LocalizationFinalLosssScale -
-                    //                        this->LocalizationInitLossScale) / (1.0 *
-                    //                        this->LocalizationICPMaxIter);
-
+                // step construct ceres optimization problem
+                //                double lossScale = this->LocalizationInitLossScale +
+                //                static_cast<double>(icpIter) *
+                //                        (this->LocalizationFinalLosssScale -
+                //                        this->LocalizationInitLossScale) / (1.0 *
+                //                        this->LocalizationICPMaxIter);
+                    
+                  
 
                     ceres::Problem::Options problem_options;
 
@@ -222,7 +211,7 @@ namespace arise_slam {
                     problem.AddParameterBlock(pose_parameters, 3);
                     problem.AddParameterBlock(pose_parameters + 3, 4,q_parameterization);
 #endif
-
+                 
                     int surf_num = 0; int edge_num=0;
                         for (unsigned int k = 0; k < OptimizationData.size(); ++k) {
                         if (OptimizationData.at(k).feature_type == FeatureType::EdgeFeature) {
@@ -264,9 +253,8 @@ namespace arise_slam {
 
                         }
                     }
-                
 
-
+             
 #if 1
                     // add absolute constraints. Specificaly for shaft environments
                     // Note: will turn off for other environments since we are not able to provide reliable information matrix!
@@ -293,9 +281,8 @@ namespace arise_slam {
                         problem.AddResidualBlock(absolutatePoseFactor, nullptr, pose_parameters);
                         stats.prediction_source=1;
                     }
-                    
-                  
                      
+                  
 #endif
                     Transformd previous_T(T_w_lidar);
                     ceres::Solver::Options options;
@@ -325,10 +312,14 @@ namespace arise_slam {
                 //   }
                 // }   
                  
+                   
 
-                   this->T_w_lidar.rot = Q_w_curr;
-                   this->T_w_lidar.pos = T_w_curr;
+                    this->T_w_lidar.rot = Q_w_curr;
+                    this->T_w_lidar.pos = T_w_curr;
 
+
+                  
+   
 
                     iter_stats.num_surf_from_scan = surf_num;
                     iter_stats.num_corner_from_scan = edge_num;
@@ -340,13 +331,7 @@ namespace arise_slam {
 
                     stats.iterations.push_back(iter_stats);
 
-                    if (OptSet.debug_view_enabled)
-                    {
-                     //   debug_view->addOptimizationIterationPose(T_w_lidar, timeLaserOdometry);
-                        // debug_view->publishCorrespondences(timeLaserOdometry);
-                        // debug_view->publishObservibility(timeLaserOdometry);
-                    }
-
+   
 
                     if (OptSet.use_imu_roll_pitch) {
                         double roll, pitch, yaw;
@@ -387,6 +372,10 @@ namespace arise_slam {
             stats.total_translation = (total_incremental_T).pos.norm();
             stats.total_rotation = 2 * atan2(total_incremental_T.rot.vec().norm(), total_incremental_T.rot.w());
             Transformd diff_from_last_T = last_T_w_lidar.inverse() * T_w_lidar;
+
+         
+
+
             stats.translation_from_last = diff_from_last_T.pos.norm();
             stats.rotation_from_last = 2 * atan2(diff_from_last_T.rot.vec().norm(), diff_from_last_T.rot.w());
             last_T_w_lidar=T_w_lidar;
@@ -417,33 +406,8 @@ namespace arise_slam {
 
             lasttimeLaserOdometry=timeLaserOdometry;
 
-#if 0
-            LOG(INFO)
-                    << "\nPosition uncertainty = "
-                    << this->LocalizationUncertainty.PositionError
-                    << " m"
-                       " (along ["
-                    << this->LocalizationUncertainty.PositionErrorDirection.transpose()
-                    << "])"
-                       "\nOrientation uncertainty = "
-                    << this->LocalizationUncertainty.OrientationError
-                    << " °"
-                       " (along ["
-                    << this->LocalizationUncertainty.OrientationErrorDirection.transpose()
-                    << "])";
-#endif
 
-            EstimateLidarUncertainty();
-            if (OptSet.debug_view_enabled)
-            { 
-            //debug_view->publishCorrespondences(timeLaserOdometry);
-            //debug_view->publishObservibility(timeLaserOdometry);
-            }
-            
-
-
-
-
+        
             localMap.shiftMap(this->T_w_lidar.pos);
 
             TicToc t_add_feature;
@@ -640,12 +604,6 @@ namespace arise_slam {
         point_b = -0.1 * n + point_on_line;
 
 
-        if (OptSet.debug_view_enabled)
-        {
-            Eigen::Vector3d fake_norm(0,0,1);
-           // debug_view->addCorrespondences(nearest_pts, pFinal_query, true, fake_norm);
-
-        }
 
         // store the distance parameter values
         result.feature_type = FeatureType::EdgeFeature;
@@ -848,13 +806,6 @@ namespace arise_slam {
 #endif
 
 
-        if (OptSet.debug_view_enabled)
-        {
-
-            //debug_view->addCorrespondences(nearest_pts, pFinal_query, false, correct_normal);
-
-        }
-
 
         result.feature_type = FeatureType::PlaneFeature;
         result.feature = feature;
@@ -986,16 +937,7 @@ namespace arise_slam {
         //    LOG(INFO)<<"trans_quality 1: "<<trans_quality.at(1).first;
         //    LOG(INFO)<<"trans_quality 2: "<<trans_quality.at(2).first;
 
-        if (OptSet.debug_view_enabled)
-        {
-            Point feature_obs;
-           // p_query=this->T_w_lidar * p_query;
-            feature_obs.x= p_query.x();
-            feature_obs.y=p_query.y();
-            feature_obs.z=p_query.z();
 
-           //debug_view->addObservability(feature_obs,rotation_quality.at(0).second);
-        }
 
 
     }
@@ -1155,93 +1097,6 @@ namespace arise_slam {
         return isDegenerate;
     }
 
-    void LidarSLAM::EstimateLidarUncertainty() {
-
-        //uncertainty x
-
-        double TotalTransFeature = PlaneFeatureHistogramObs.at(6) +
-                                   PlaneFeatureHistogramObs.at(7) +
-                                   PlaneFeatureHistogramObs.at(8);
-      
-        //uncertainty x
-        double uncertaintyX = (PlaneFeatureHistogramObs.at(6) / TotalTransFeature) * 3;
-        lidarOdomUncer.uncertainty_x = std::min(uncertaintyX, 1.0);
-
-        //uncertainty y
-        double uncertaintyY = (PlaneFeatureHistogramObs.at(7) / TotalTransFeature) * 3;
-        lidarOdomUncer.uncertainty_y = std::min(uncertaintyY, 1.0);
-
-        //uncertainty Z
-        double uncertaintyZ = (PlaneFeatureHistogramObs.at(8) / TotalTransFeature) * 3;
-        lidarOdomUncer.uncertainty_z = std::min(uncertaintyZ, 1.0);
-
-
-        double TotalRotationFeature = PlaneFeatureHistogramObs.at(0) +
-                                      PlaneFeatureHistogramObs.at(1) +
-                                      PlaneFeatureHistogramObs.at(2) +
-                                      PlaneFeatureHistogramObs.at(3) +
-                                      PlaneFeatureHistogramObs.at(4) +
-                                      PlaneFeatureHistogramObs.at(5);
-
-        //uncertainty roll
-        double uncertaintyRoll =
-                (PlaneFeatureHistogramObs.at(0) + PlaneFeatureHistogramObs.at(1)) / TotalRotationFeature * 3;
-        lidarOdomUncer.uncertainty_roll = std::min(uncertaintyRoll, 1.0);
-        // lidarOdomUncer.uncertainty_roll=this->LocalizationUncertainty.LidarUncertainty[3];
-
-        //uncertainty pitch
-        double uncertaintyPitch =
-                (PlaneFeatureHistogramObs.at(2) + PlaneFeatureHistogramObs.at(3)) / TotalRotationFeature * 3;
-        lidarOdomUncer.uncertainty_pitch = std::min(uncertaintyPitch, 1.0);
-        //lidarOdomUncer.uncertainty_pitch=this->LocalizationUncertainty.LidarUncertainty[4];
-
-        //uncertainty yaw
-        double uncertaintyYaw =
-                (PlaneFeatureHistogramObs.at(4) + PlaneFeatureHistogramObs.at(5)) / TotalRotationFeature * 3;
-        lidarOdomUncer.uncertainty_yaw = std::min(uncertaintyYaw, 1.0);
-        //lidarOdomUncer.uncertainty_yaw=this->LocalizationUncertainty.LidarUncertainty[5];
-
-              
-        if(TotalTransFeature==0 || TotalRotationFeature==0)
-        {
-          lidarOdomUncer.uncertainty_x=0;
-          lidarOdomUncer.uncertainty_y=0;
-          lidarOdomUncer.uncertainty_z=0;
-          lidarOdomUncer.uncertainty_roll=0;
-          lidarOdomUncer.uncertainty_pitch=0;
-          lidarOdomUncer.uncertainty_yaw=0;   
-        }
-
-        // RCLCPP_WARN_THROTTLE(node_->get_logger(), *node_->get_clock(), 10,
-        //                     "\033[1;32m----> ADD Absolute factor in lasermapping.\033[0m");
-        // RCLCPP_WARN_THROTTLE(node_->get_logger(), *node_->get_clock(), 10,
-        //                     "\033[1;32m----> ADD Absolute factor in lasermapping.\033[0m");
-        // LOG(INFO) << "Pos_degeneracy_threshold: " << Pos_degeneracy_threshold;
-        // LOG(INFO) << "Ori_degeneracy_threshold: " << Ori_degeneracy_threshold;
-        // LOG(INFO) << "Visual_confidence_factor: " << Visual_confidence_factor;
-        
-       // if (OptSet.debug_view_enabled)
-       // debug_view->publishUncertainty(lidarOdomUncer.uncertainty_x, lidarOdomUncer.uncertainty_y, lidarOdomUncer.uncertainty_z,
-       //                               lidarOdomUncer.uncertainty_roll, lidarOdomUncer.uncertainty_pitch, lidarOdomUncer.uncertainty_yaw);
-
-        stats.uncertainty_x=lidarOdomUncer.uncertainty_x;
-        stats.uncertainty_y=lidarOdomUncer.uncertainty_y;
-        stats.uncertainty_z=lidarOdomUncer.uncertainty_z;
-        stats.uncertainty_roll=lidarOdomUncer.uncertainty_roll;
-        stats.uncertainty_pitch=lidarOdomUncer.uncertainty_pitch;
-        stats.uncertainty_yaw=lidarOdomUncer.uncertainty_yaw;
-
-
-        if (lidarOdomUncer.uncertainty_x<0.2 or lidarOdomUncer.uncertainty_y<0.1 or lidarOdomUncer.uncertainty_z<0.2) {
-            isDegenerate = true;
-
-        }else if (PlaneFeatureHistogramObs.at(6)<20 or PlaneFeatureHistogramObs.at(7)<10 or PlaneFeatureHistogramObs.at(8)<10)
-        {
-            isDegenerate = true;   
-        }
-        else {
-            isDegenerate = false;
-        }
-    }
+  
 
 } /* arise_slam */

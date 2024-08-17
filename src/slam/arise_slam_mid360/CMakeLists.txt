@@ -89,7 +89,6 @@ add_library(AriseSlamLib SHARED
   src/LidarProcess/pose_local_parameterization.cpp
   src/LidarProcess/SE3AbsolutatePoseFactor.cpp
   src/parameter/parameter.cpp
-  src/debug_view.cpp
 )
 
 # Set up library include directory

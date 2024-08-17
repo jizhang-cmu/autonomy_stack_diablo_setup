@@ -61,7 +61,22 @@ namespace arise_slam {
         float pos_degeneracy_threshold;
         float ori_degeneracy_threshold;
         float yaw_ratio;
+        std::string map_dir;
+        bool local_mode;
+        float init_x;
+        float init_y;
+        float init_z;
+        float init_roll;
+        float init_pitch;
+        float init_yaw;
+        float read_pose_file;
+    };
     
+    struct OdometryData {
+    double timestamp;
+    double duration;
+    double x, y, z;
+    double roll, pitch, yaw;
     };
 
 
@@ -152,6 +167,15 @@ namespace arise_slam {
 
         bool
         readParameters();
+        
+        bool
+        readPointCloud();
+
+        void 
+        saveLocalizationPose(double timestamp,Transformd &T_w_lidar, const std::string& parentPath);
+
+        void 
+        readLocalizationPose(const std::string& parentPath);
 
         void
         save_debug_statistic(const std::string file_name);
@@ -188,6 +212,7 @@ namespace arise_slam {
         // Publisher
         rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubLaserCloudSurround;
         rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubLaserCloudMap;
+        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubLaserCloudPrior;
         rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubLaserCloudFullRes;
         rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubLaserCloudFullRes_rot;
         rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubLaserCloudFullResOusterWithFeatures;
@@ -253,7 +278,7 @@ namespace arise_slam {
         std::queue<Eigen::Quaterniond> IMUPredictionBuf;
         std::queue<SensorType> sensorTypeLastBuf;
         SensorType last_sensor_type_= SensorType::VELODYNE;
-        
+     
         
         // variables for stacking 2 scans
         std::queue<pcl::PointCloud<PointType>> cornerDualScanBuf;
@@ -261,8 +286,6 @@ namespace arise_slam {
         std::queue<pcl::PointCloud<pcl::PointXYZHSV>> fullResDualScanBuf;
         std::queue<Transformd> scanTransformBuf;
         std::queue<SensorType> sensorTypeBuf;
-
-
 
         pcl::PointCloud<PointType>::Ptr laserCloudCornerLast;
         pcl::PointCloud<PointType>::Ptr laserCloudSurfLast;
@@ -278,6 +301,9 @@ namespace arise_slam {
         pcl::PointCloud<pcl::PointXYZHSV>::Ptr velodyneLaserCloudRawWithFeatures;
         pcl::PointCloud<pcl::PointXYZHSV>::Ptr ousterLaserCloudRawWithFeatures;
 
+        pcl::PointCloud<PointType>::Ptr laserCloudPriorOrg;
+        pcl::PointCloud<PointType>::Ptr laserCloudPrior;
+        sensor_msgs::msg::PointCloud2 priorCloudMsg;
 
         Transformd T_w_lidar;
         Transformd last_T_w_lidar;
@@ -305,6 +331,7 @@ namespace arise_slam {
 
         enum class PredictionSource {IMU_ORIENTATION, IMU_ODOM, VISUAL_ODOM};
         PredictionSource prediction_source;
+        std::vector<arise_slam::OdometryData> odometryResults;
            
     }; // class laserMapping
 

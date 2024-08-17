@@ -21,7 +21,7 @@
 #include "arise_slam_mid360/utils/Twist.h"
 #include "arise_slam_mid360/FeatureExtraction/LidarKeypointExtractor.h"
 #include <arise_slam_mid360_msgs/msg/optimization_stats.hpp>
-#include <arise_slam_mid360/debug_view.h>
+
 #include <arise_slam_mid360_msgs/msg/optimization_stats.hpp>
 
 #include <sophus/se3.hpp>
@@ -223,8 +223,7 @@ namespace arise_slam {
 
     public:
         LocalMap localMap;
-        // DebugView *debug_view;
-        std::shared_ptr<DebugView> debug_view;
+    
         arise_slam_mid360_msgs::msg::OptimizationStats stats;
         // Variance-Covariance matrix that estimates the localization error about the
         // 6-DoF parameters (DoF order :  rX, rY, rZ, X ,Y ,Z)
@@ -242,12 +241,21 @@ namespace arise_slam {
         int laser_imu_sync;
         int startupCount = 0;
 
-  
-
         float Pos_degeneracy_threshold;
         float Ori_degeneracy_threshold;
         float Visual_confidence_factor;
-
+        
+        std::string map_dir;
+        float init_x;
+        float init_y;
+        float init_z;
+        float init_roll;
+        float init_pitch;
+        float init_yaw;
+        float local_mode;
+        float update_map;
+    
+      
 
         // Pose at the begining of current frame
         Eigen::Isometry3d TworldFrameStart;
@@ -370,6 +378,8 @@ namespace arise_slam {
         // (time ellapsed between first and last point measurements)
         double FrameDuration;
         double lasttimeLaserOdometry = 0;
+        double fisrt_time = 0;
+
 
         rclcpp::Node::SharedPtr node_;
 
@@ -390,7 +400,6 @@ namespace arise_slam {
 
         RegistrationError EstimateRegistrationError(ceres::Problem &problem, const double eigen_thresh);
 
-        void EstimateLidarUncertainty();
 
         bool DegeneracyDetection(double eigThreshlod, Eigen::Matrix<double, 6, 6, Eigen::RowMajor> &matAtA,
                                  Eigen::Matrix<double, 6, 1> &matX);
