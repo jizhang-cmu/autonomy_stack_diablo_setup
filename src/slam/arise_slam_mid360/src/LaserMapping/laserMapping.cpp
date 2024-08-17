@@ -71,6 +71,9 @@ namespace arise_slam {
         pubLaserCloudMap = this->create_publisher<sensor_msgs::msg::PointCloud2>(
             ProjectName+"/laser_cloud_map", 2);
 
+        pubLaserCloudPrior = this->create_publisher<sensor_msgs::msg::PointCloud2>(
+            ProjectName+"/overall_map", 2);
+
         pubLaserCloudFullRes = this->create_publisher<sensor_msgs::msg::PointCloud2>(
             ProjectName+"/registered_scan", 2);
 
@@ -123,6 +126,15 @@ namespace arise_slam {
         slam.OptSet.velocity_failure_threshold=config_.velocity_failure_threshold;
         slam.OptSet.max_surface_features=config_.max_surface_features;
         slam.OptSet.yaw_ratio=yaw_ratio;
+        slam.map_dir=config_.map_dir;
+        slam.local_mode=config_.local_mode;
+        slam.init_x=config_.init_x;
+        slam.init_y=config_.init_y;
+        slam.init_z=config_.init_z;
+        slam.init_roll=config_.init_roll;
+        slam.init_pitch=config_.init_pitch;
+        slam.init_yaw=config_.init_yaw;
+
        // slam.localMap = config_.forget_far_chunks;
 
        // if (config_.debug_view_enabled)
@@ -151,6 +163,8 @@ namespace arise_slam {
         laserCloudCornerStack.reset(new pcl::PointCloud<PointType>());
         laserCloudSurfStack.reset(new pcl::PointCloud<PointType>());
         laserCloudRealsense.reset(new pcl::PointCloud<PointType>());
+        laserCloudPriorOrg.reset(new pcl::PointCloud<PointType>());
+        laserCloudPrior.reset(new pcl::PointCloud<PointType>());
 
         Eigen::Quaterniond q_wmap_wodom_(1, 0, 0, 0);
         Eigen::Vector3d t_wmap_wodom_(0, 0, 0);
@@ -168,6 +182,21 @@ namespace arise_slam {
 
         imu_odom_buf.allocate(5000);
         visual_odom_buf.allocate(5000);
+        
+        slam.localMap.setOrigin(Eigen::Vector3d(slam.init_x, slam.init_y, slam.init_z));
+
+        if (slam.local_mode) {
+            RCLCPP_INFO(this->get_logger(), "\033[1;32m Loading Map now....\033[0m");
+            if(readPointCloud()) {
+                slam.localMap.addSurfPointCloud(*laserCloudPrior);
+                RCLCPP_INFO(this->get_logger(), "\033[1;32m Loaded Map succesfully. Started SLAM in localization mode.\033[0m");
+            } else {
+                slam.local_mode = false;
+                RCLCPP_INFO(this->get_logger(), "\033[1;32mCannot read map file, switched to mapping mode.\033[0m");
+            }
+        } else {
+            RCLCPP_INFO(this->get_logger(), "\033[1;32mStarted SLAM in mapping mode.\033[0m");
+        }
     }
 
     bool laserMapping::readParameters()
@@ -186,6 +215,15 @@ namespace arise_slam {
         this->declare_parameter<float>("visual_confidence_factor", 1.0);
         this->declare_parameter<float>("pos_degeneracy_threshold", 1.0);
         this->declare_parameter<float>("ori_degeneracy_threshold", 1.0);
+        this->declare_parameter<std::string>("map_dir", "pointcloud_local.txt");
+        this->declare_parameter<bool>("local_mode", false);
+        this->declare_parameter<float>("init_x", 0.0);
+        this->declare_parameter<float>("init_y", 0.0);
+        this->declare_parameter<float>("init_z", 0.0);
+        this->declare_parameter<float>("init_roll", 0.0);
+        this->declare_parameter<float>("init_pitch", 0.0);
+        this->declare_parameter<float>("init_yaw", 0.0);
+        this->declare_parameter<bool>("read_pose_file", false);
 
         config_.lineRes = get_parameter("mapping_line_resolution").as_double();
         config_.planeRes = get_parameter("mapping_plane_resolution").as_double();
@@ -201,10 +239,135 @@ namespace arise_slam {
         config_.visual_confidence_factor = get_parameter("visual_confidence_factor").as_double();
         config_.pos_degeneracy_threshold = get_parameter("pos_degeneracy_threshold").as_double();
         config_.ori_degeneracy_threshold = get_parameter("ori_degeneracy_threshold").as_double(); 
+        config_.map_dir = get_parameter("map_dir").as_string(); 
+        config_.local_mode = get_parameter("local_mode").as_bool();
+        config_.read_pose_file = get_parameter("read_pose_file").as_bool();
+
+        if(config_.read_pose_file)
+        {   
+            readLocalizationPose(config_.map_dir);
+            config_.init_x= odometryResults[0].x;
+            config_.init_y= odometryResults[0].y;
+            config_.init_z= odometryResults[0].z;
+            config_.init_roll= odometryResults[0].roll;
+            config_.init_pitch= odometryResults[0].pitch;
+            config_.init_yaw= odometryResults[0].yaw;
+        }
+        else
+        {  
+            config_.init_x = get_parameter("init_x").as_double(); 
+            config_.init_y = get_parameter("init_y").as_double(); 
+            config_.init_z = get_parameter("init_z").as_double(); 
+            config_.init_roll = get_parameter("init_roll").as_double();
+            config_.init_pitch = get_parameter("init_pitch").as_double();
+            config_.init_yaw = get_parameter("init_yaw").as_double(); 
+        }
 
         return true;
     }
+    
+    bool laserMapping::readPointCloud()
+    {
+        FILE *map_file = fopen(slam.map_dir.c_str(), "r");
+        if (map_file == NULL) {
+            return false;
+        }
+        
+        PointType pointRead;
+        float intensity, time;
+        int val1, val2, val3, val4, val5;
+        while (1) {
+            val1 = fscanf(map_file, "%f", &pointRead.x);
+            val2 = fscanf(map_file, "%f", &pointRead.y);
+            val3 = fscanf(map_file, "%f", &pointRead.z);
+            val4 = fscanf(map_file, "%f", &intensity);
+            val5 = fscanf(map_file, "%f", &time);
 
+            if (val1 != 1 || val2 != 1 || val3 != 1 || val4 != 1 || val5 != 1) break;
+        
+            laserCloudPriorOrg->push_back(pointRead);
+        }
+        
+        downSizeFilterSurf.setInputCloud(laserCloudPriorOrg);
+        downSizeFilterSurf.filter(*laserCloudPrior);
+        laserCloudPriorOrg->clear();
+        
+        pcl::toROSMsg(*laserCloudPrior, priorCloudMsg);
+        priorCloudMsg.header.frame_id = WORLD_FRAME;
+        
+        return true;
+    } 
+
+    void laserMapping::readLocalizationPose(const std::string& parentPath)
+    {   
+        std::cerr << "Reading localization pose..." << std::endl;
+        std::string saveOdomPath;
+        size_t lastSlashPos = parentPath.find_last_of('/');
+        if (lastSlashPos != std::string::npos) {
+            saveOdomPath=parentPath.substr(0, lastSlashPos + 1); // Include the trailing slash
+        }
+        
+        std::string localizationPosePath = saveOdomPath + "start_pose.txt";
+        std::ifstream file(localizationPosePath);
+        if (!file.is_open()) {
+            std::cerr << "Error opening file: " << localizationPosePath << std::endl;
+            return;
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line.empty()) {
+            continue;
+    }
+            std::istringstream iss(line);
+            arise_slam::OdometryData odom;
+            if (iss >> odom.duration >> odom.x >> odom.y >> odom.z >> odom.roll >> odom.pitch >> odom.yaw) {
+                std::cout << "Read odometry data: " << odom.x << " " << odom.y << " " << odom.z << std::endl;
+                odometryResults.push_back(odom);
+            } else {
+                std::cerr << "Error reading line: " << line << std::endl;
+            }
+        }
+        std::cerr << "\033[1;32m  loaded the localization_pose.txt successfully \033[0m" <<odometryResults[0].x 
+        <<" "<<odometryResults[0].y<<" "<<odometryResults[0].z<< std::endl;
+        file.close();
+    }
+
+    // Function to save odometry data to a text file
+    void laserMapping::saveLocalizationPose(double timestamp,Transformd &T_w_lidar, const std::string& parentPath) {
+        
+        std::string saveOdomPath;
+        size_t lastSlashPos = parentPath.find_last_of('/');
+        if (lastSlashPos != std::string::npos) {
+            saveOdomPath=parentPath.substr(0, lastSlashPos + 1); // Include the trailing slash
+            }
+
+        arise_slam::OdometryData odom;
+        {
+         odom.timestamp = timestamp;
+         odom.x = T_w_lidar.pos.x();
+         odom.y = T_w_lidar.pos.y();
+         odom.z = T_w_lidar.pos.z(); 
+         tf2::Quaternion orientation(T_w_lidar.rot.x(), T_w_lidar.rot.y(), T_w_lidar.rot.z(), T_w_lidar.rot.w());
+         tf2::Matrix3x3(orientation).getRPY(odom.roll, odom.pitch, odom.yaw);
+        }
+
+        odometryResults.push_back(odom);
+        
+        std::string OdomResultPath=saveOdomPath+"start_pose.txt";
+        std::ofstream outFile(OdomResultPath, std::ios::app);
+        
+        if (!outFile.is_open()) {
+            std::cerr << "Error opening file: " << OdomResultPath << std::endl;
+            return;
+        }
+
+        outFile << std::fixed<< odom.timestamp-odometryResults[0].timestamp << " "
+        << odom.x << " " << odom.y << " " << odom.z << " "
+        << odom.roll << " " <<odom.pitch << " " << odom.yaw<< std::endl;
+
+        outFile.close();
+    }
 
     void laserMapping::transformAssociateToMap(Transformd T_w_pre, Transformd T_wodom_curr, Transformd T_wodom_pre) {
 
@@ -269,6 +432,7 @@ namespace arise_slam {
         fullResBuf.push(msgIn->cloud_nodistortion);
         Eigen::Quaterniond imuprediction_tmp(msgIn->initial_quaternion_w, msgIn->initial_quaternion_x,
                                              msgIn->initial_quaternion_y, msgIn->initial_quaternion_z);
+
         IMUPredictionBuf.push(imuprediction_tmp);
         mBuf.unlock();
     }
@@ -298,12 +462,13 @@ namespace arise_slam {
 
             if(use_imu_roll_pitch_this_step)
             {
+                
                 double roll, pitch, yaw;
                 tf2::Quaternion orientation_curr(q_wodom_curr.x(), q_wodom_curr.y(), q_wodom_curr.z(), q_wodom_curr.w());
                 tf2::Matrix3x3(orientation_curr).getRPY(roll, pitch, yaw);
                 RCLCPP_DEBUG(this->get_logger(), "Directly Use IMU Yaw: %f", yaw);
                 tf2::Quaternion yaw_quat;
-                yaw_quat.setRPY(0, 0, -yaw); //make sure the yaw angle is zero at the beginning
+                yaw_quat.setRPY(0, 0, - yaw); //make sure the yaw angle is zero at the beginning
                 RCLCPP_DEBUG(this->get_logger(), "Start roll, pitch, yaw %f, %f, %f", roll, pitch, yaw);
                 tf2::Quaternion first_orientation;
                 first_orientation = yaw_quat*orientation_curr;
@@ -319,14 +484,36 @@ namespace arise_slam {
                 //q_w_curr = q_wodom_curr;
                 q_wodom_pre = q_w_curr;
                 T_w_lidar.rot=q_w_curr;
+                
+                if(slam.local_mode)
+                {
+                    
+                T_w_lidar.pos=Eigen::Vector3d(slam.init_x, slam.init_y, slam.init_z);
+                tf2::Quaternion quat ;
+                quat.setRPY(slam.init_roll,slam.init_pitch, slam.init_yaw);
+                T_w_lidar.rot=Eigen::Quaterniond(quat.w(), quat.x(), quat.y(), quat.z());
+                RCLCPP_DEBUG(this->get_logger(), "\033[1;32m  Localization Mode: x: %f y: %f z: %f roll: %f pitch: %f yaw:%f \033[0m",
+                            slam.init_x,slam.init_y,slam.init_z,slam.init_roll, slam.init_pitch, slam.init_yaw);
+                slam.last_T_w_lidar=T_w_lidar;
+                }
+
                 //  initialization = true;
 
             }else
-            {
+            {   
+               
                 RCLCPP_WARN(this->get_logger(), "start from zero");
-                q_w_curr = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
-                q_wodom_pre = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
+                q_w_curr = Eigen::Quaterniond(cos(slam.init_yaw / 2), 0, 0, sin(slam.init_yaw / 2));
+                q_wodom_pre = Eigen::Quaterniond(cos(slam.init_yaw / 2), 0, 0, sin(slam.init_yaw / 2));
                 T_w_lidar.rot=q_w_curr;
+                if(slam.local_mode)
+                { 
+                  T_w_lidar.pos=Eigen::Vector3d(slam.init_x, slam.init_y, slam.init_z);
+                  tf2::Quaternion quat ;
+                  quat.setRPY(slam.init_roll,slam.init_pitch, slam.init_yaw);
+                  T_w_lidar.rot=Eigen::Quaterniond(quat.w(), quat.x(), quat.y(), quat.z());
+                
+                }
             }
 
         } else if (startupCount>0) // To use IMU orientation for a while for initialization
@@ -347,7 +534,8 @@ namespace arise_slam {
             startupCount--;
         }
         else
-        {
+        {   
+          
             if (config_.use_imu_roll_pitch)
                 use_imu_roll_pitch_this_step=true;
             selectposePrediction();
@@ -664,6 +852,11 @@ namespace arise_slam {
             laserCloudMsg.header.stamp = rclcpp::Time(timeLaserOdometry*1e9);
             laserCloudMsg.header.frame_id = WORLD_FRAME;
             pubLaserCloudMap->publish(laserCloudMsg);
+            
+            if (slam.local_mode) {
+                priorCloudMsg.header.stamp = rclcpp::Time(timeLaserOdometry*1e9);
+                pubLaserCloudPrior->publish(priorCloudMsg);
+            }
         }
 
         int laserCloudFullResNum = laserCloudFullRes->points.size();
@@ -814,8 +1007,8 @@ namespace arise_slam {
         pubOptimizationStats->publish(slam.stats);
         slam.stats.iterations.clear();
 
+    
 
-       
         // tf2_ros::TransformBroadcaster br(this);
         // // tf2::Transform transform;
         // geometry_msgs::msg::TransformStamped transform_stamped_;
@@ -1047,24 +1240,24 @@ namespace arise_slam {
                     double imu_roll, imu_pitch, imu_yaw;
                     tf2::Quaternion orientation(T_w_lidar.rot.x(), T_w_lidar.rot.y(), T_w_lidar.rot.z(), T_w_lidar.rot.w());
                     tf2::Matrix3x3(orientation).getRPY(imu_roll, imu_pitch, imu_yaw);
-                    RCLCPP_INFO(this->get_logger(), "Start orientation: %f %f %f", imu_roll, imu_pitch, imu_yaw);
+                    RCLCPP_INFO(this->get_logger(), "Using IMU Roll Pitch in ICP: %f %f %f", imu_roll, imu_pitch, imu_yaw);
                     imu_roll_pitch.setRPY(imu_roll, imu_pitch, 0);
                 }
 
 
                 if(prediction_source==PredictionSource::VISUAL_ODOM) {
                      
-                     slam.OptSet.use_imu_roll_pitch=use_imu_roll_pitch_this_step;
-                     slam.OptSet.imu_roll_pitch=imu_roll_pitch;
-                     slam.Localization(initialization, LidarSLAM::PredictionSource::VISUAL_ODOM, T_w_lidar,
-                                      laserCloudCornerStack, laserCloudSurfStack,timeLaserOdometry);
+                    slam.OptSet.use_imu_roll_pitch=use_imu_roll_pitch_this_step;
+                    slam.OptSet.imu_roll_pitch=imu_roll_pitch;
+                    slam.Localization(initialization, LidarSLAM::PredictionSource::VISUAL_ODOM, T_w_lidar,
+                                    laserCloudCornerStack, laserCloudSurfStack,timeLaserOdometry);
 
                 }else {
                           
-                            slam.OptSet.use_imu_roll_pitch=use_imu_roll_pitch_this_step;
-                            slam.OptSet.imu_roll_pitch=imu_roll_pitch;
-                            slam.Localization(initialization, LidarSLAM::PredictionSource::IMU_ODOM, T_w_lidar,
-                                      laserCloudCornerStack, laserCloudSurfStack,timeLaserOdometry);
+                    slam.OptSet.use_imu_roll_pitch=use_imu_roll_pitch_this_step;
+                    slam.OptSet.imu_roll_pitch=imu_roll_pitch;
+                    slam.Localization(initialization, LidarSLAM::PredictionSource::IMU_ODOM, T_w_lidar,
+                                laserCloudCornerStack, laserCloudSurfStack,timeLaserOdometry);
                            
                 }
 
@@ -1102,10 +1295,11 @@ namespace arise_slam {
 #endif
                 // printf("whole mapping time %f ms +++++\n", t_whole.toc());
 
-                //  save_debug_statistic(debug_file);
-
+              
                 publishTopic();
-
+                // if(config_.read_pose_file)
+                //     saveLocalizationPose(timeLaserOdometry, T_w_lidar, slam.map_dir.c_str());
+                // save_debug_statistic(debug_file);
             }
             std::chrono::milliseconds dura(2);
             std::this_thread::sleep_for(dura);

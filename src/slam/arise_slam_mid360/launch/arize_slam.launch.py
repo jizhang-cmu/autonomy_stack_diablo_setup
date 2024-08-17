@@ -18,6 +18,7 @@ def generate_launch_description():
         package_name="arise_slam_mid360",
         file_name="config/livox/livox_mid360_calibration.yaml"
     )
+    home_directory = os.path.expanduser("~")
     
     config_path_arg = DeclareLaunchArgument(
         "config_file",
@@ -70,6 +71,7 @@ def generate_launch_description():
         },
         parameters=[LaunchConfiguration("config_file"),
             { "calibration_file": LaunchConfiguration("calibration_file"),
+             "map_dir": os.path.join(home_directory, "Desktop/pointcloud_local.txt"),
         }],
         remappings=[
             ("laser_odom_to_init", LaunchConfiguration("odom_topic")),

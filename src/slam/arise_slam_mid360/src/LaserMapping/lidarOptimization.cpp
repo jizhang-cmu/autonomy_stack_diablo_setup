@@ -61,6 +61,13 @@ bool SurfNormAnalyticCostFunction::Evaluate(double const *const *parameters, dou
     Eigen::Map<const Eigen::Vector3d> t_w_curr(parameters[0]);
     Eigen::Map<const Eigen::Quaterniond> q_w_curr(parameters[0]+3);
     Eigen::Vector3d point_w = q_w_curr * curr_point + t_w_curr;
+    
+    // std::cout<<"t_w_curr: "<<t_w_curr<<std::endl;
+    // std::cout<<"q_w_curr: "<<q_w_curr<<std::endl;
+
+    // bool condition=(t_w_curr.x()==1 && t_w_curr.y()==0 && t_w_curr.z()==0 && q_w_curr.w()==1 && q_w_curr.x()==0 && q_w_curr.y()==0 && q_w_curr.z()==0);
+    
+    // assert(condition&&"t_w_curr or q_w_curr is not zero");
 
     residuals[0] = plane_unit_norm.dot(point_w) + negative_OA_dot_norm;
 
