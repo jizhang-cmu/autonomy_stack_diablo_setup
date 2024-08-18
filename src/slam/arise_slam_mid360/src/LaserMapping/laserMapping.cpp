@@ -186,10 +186,10 @@ namespace arise_slam {
         slam.localMap.setOrigin(Eigen::Vector3d(slam.init_x, slam.init_y, slam.init_z));
 
         if (slam.local_mode) {
-            RCLCPP_INFO(this->get_logger(), "\033[1;32m Loading Map now....\033[0m");
+            RCLCPP_INFO(this->get_logger(), "\033[1;32m Loading map....\033[0m");
             if(readPointCloud()) {
                 slam.localMap.addSurfPointCloud(*laserCloudPrior);
-                RCLCPP_INFO(this->get_logger(), "\033[1;32m Loaded Map succesfully. Started SLAM in localization mode.\033[0m");
+                RCLCPP_INFO(this->get_logger(), "\033[1;32m Loaded map succesfully, started SLAM in localization mode.\033[0m");
             } else {
                 slam.local_mode = false;
                 RCLCPP_INFO(this->get_logger(), "\033[1;32mCannot read map file, switched to mapping mode.\033[0m");
@@ -321,7 +321,7 @@ namespace arise_slam {
     }
             std::istringstream iss(line);
             arise_slam::OdometryData odom;
-            if (iss >> odom.duration >> odom.x >> odom.y >> odom.z >> odom.roll >> odom.pitch >> odom.yaw) {
+            if (iss >> odom.x >> odom.y >> odom.z >> odom.roll >> odom.pitch >> odom.yaw >> odom.duration) {
                 std::cout << "Read odometry data: " << odom.x << " " << odom.y << " " << odom.z << std::endl;
                 odometryResults.push_back(odom);
             } else {
@@ -362,9 +362,8 @@ namespace arise_slam {
             return;
         }
 
-        outFile << std::fixed<< odom.timestamp-odometryResults[0].timestamp << " "
-        << odom.x << " " << odom.y << " " << odom.z << " "
-        << odom.roll << " " <<odom.pitch << " " << odom.yaw<< std::endl;
+        outFile << std::fixed << " " << odom.x << " " << odom.y << " " << odom.z << " "
+        << odom.roll << " " <<odom.pitch << " " << odom.yaw << odom.timestamp-odometryResults[0].timestamp << std::endl;
 
         outFile.close();
     }
