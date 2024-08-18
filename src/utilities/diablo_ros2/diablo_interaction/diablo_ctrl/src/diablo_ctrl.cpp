@@ -4,15 +4,16 @@
 using namespace std;
 
 void diabloCtrlNode::heart_beat_loop(void){
-    RCLCPP_INFO(this->get_logger(), "start.");
-    while (this->thd_loop_mark_)
-    {
+    //RCLCPP_INFO(this->get_logger(), "start.");
+    //while (this->thd_loop_mark_)
+    //{
         if (onSend)
         {
             if(!pMovementCtrl->in_control())
             {
                 pMovementCtrl->obtain_control();
-                continue;
+                //continue;
+                return;
             }
             
             if(!ctrl_msg_.mode_mark){
@@ -35,14 +36,14 @@ void diabloCtrlNode::heart_beat_loop(void){
                 pMovementCtrl->ctrl_mode_data.roll_ctrl_mode = ctrl_msg_.mode.roll_ctrl_mode;
                 pMovementCtrl->SendMovementModeCtrlCmd();
             }
-            usleep(180000);
+            //usleep(180000);
         }
-    }
+    //}
 }
 
 void diabloCtrlNode::run_(void){
     this->thd_loop_mark_ = true;
-    //this->thread_ = std::make_shared<std::thread>(&diabloCtrlNode::heart_beat_loop,this);
+    this->thread_ = std::make_shared<std::thread>(&diabloCtrlNode::heart_beat_loop,this);
 }
 
 void diabloCtrlNode::Motion_callback(const motion_msgs::msg::MotionCtrl::SharedPtr msg)
@@ -85,15 +86,12 @@ void diabloCtrlNode::Motion_callback(const motion_msgs::msg::MotionCtrl::SharedP
     onSend = true;
 }
 
-
-
 diabloCtrlNode::~diabloCtrlNode()
 {
     RCLCPP_INFO(this->get_logger(), "done.");
     this->thd_loop_mark_ = false;
     thread_->join();
 }
-
 
 int main(int argc, char **argv)
 {
@@ -124,9 +122,25 @@ int main(int argc, char **argv)
     // vehicle.telemetry->setMaxSpeed(1.0);
     node->pMovementCtrl = vehicle.movement_ctrl;
     node->pTelemetry = vehicle.telemetry;
-    node->run_();
+    //node->run_();
 
-    rclcpp::spin(node);
+    int heart_beat_count = 0;
+    rclcpp::Rate rate(100);
+    bool status = rclcpp::ok();
+    while (status) {
+      rclcpp::spin_some(node);
+
+      heart_beat_count++;
+      if (heart_beat_count > 100) {
+        node->heart_beat_loop();
+        heart_beat_count = 0;
+      }
+
+      status = rclcpp::ok();
+      rate.sleep();
+    }
+
+    //rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;
 }
