@@ -424,13 +424,9 @@ Users can set up AI models on the base station computer to process the transmitt
   <img src="img/base_station.jpg" alt="Base Station" width="80%"/>
 </p>
 
-## About SLAM Module
-
-The full-blown ARISE SLAM fuses IMU, image, and scan data in an adaptive pipeline. A learning-based IMU model seeds image and scan processing, and the latter inversely strengthens the IMU model adapting it to the current settings. When sensing degradation happens in the environment, the pipeline automatically and dynamically reconfigures to keep itself robust. Especially, when both image and scan processing degrades, the pipeline reduces to the IMU model and relies on it to survive. This repository contains a slimmed version of ARISE SLAM for lightweight processing, adapted to the Mid-360 lidar. More information about the full-blown version will be released soon.
-
 ## Main Contributors
 
-[Shibo Zhao](https://shibowing.github.io), [Botao He](https://github.com/Bottle101), [Guofei Chen](https://gfchen01.cc), [Chao Cao](https://caochao.me), [Sam Shum](https://github.com/supercrazysam), and [Ji Zhang](https://frc.ri.cmu.edu/~zhangji)
+[Guofei Chen](https://gfchen01.cc), [Botao He](https://github.com/Bottle101), [Shibo Zhao](https://shibowing.github.io), [Chao Cao](https://caochao.me), [Sam Shum](https://github.com/supercrazysam), and [Ji Zhang](https://frc.ri.cmu.edu/~zhangji)
 
 ## Credits
 
@@ -439,8 +435,6 @@ The project is sponsored by the [National Robotics Engineering Center](https://w
 [gtsam](https://gtsam.org), [Sophus](http://github.com/strasdat/Sophus.git), [domain_bridge](https://github.com/ros2/domain_bridge), [livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2), [Livox-SDK2](https://github.com/Livox-SDK/Livox-SDK2), [libuvc-theta](https://github.com/ricohapi/libuvc-theta), [gstthetauvc](https://github.com/nickel110/gstthetauvc), [diablo_ros2](https://github.com/DDTRobot/diablo_ros2), and [ROS-TCP-Endpoint](https://github.com/Unity-Technologies/ROS-TCP-Endpoint) packages are from open-source releases.
 
 ## Relevant Links
-
-The SLAM Module is based on ARISE SLAM (link available soon).
 
 The base autonomy system is based on [Autonomous Exploration Development Environment](https://www.cmu-exploration.com).
 
