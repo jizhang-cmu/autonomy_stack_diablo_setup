@@ -555,7 +555,7 @@ namespace arise_slam {
         TicToc t_whole;
         
         pcl::PointCloud<LidarKeypointExtractor::Point>::Ptr pc(new pcl::PointCloud<LidarKeypointExtractor::Point>);
-        removeClosestFarestPointCloud(laserCloudIn, laserCloudIn, config_.min_range, config_.max_range);
+        //removeClosestFarestPointCloud(laserCloudIn, laserCloudIn, config_.min_range, config_.max_range);
         pcl::PointCloud<PointType>::Ptr laserCloud(new pcl::PointCloud<PointType>());
         
         if(laserCloudIn.size()<=10) {
@@ -1479,7 +1479,7 @@ namespace arise_slam {
             curLidarBufferSize = lidarBuf.getSize();
         }
         
-
+        removeClosestFarestPointCloud(*pointCloud, *pointCloud, config_.min_range, config_.max_range);
         lidarBuf.addMeas(pointCloud, laserCloudMsg->header.stamp.sec + laserCloudMsg->header.stamp.nanosec*1e-9);
         
         
@@ -1590,6 +1590,7 @@ namespace arise_slam {
         // sensor_msgs::msg::PointCloud2 tempCloud;
         // tempCloud=publishCloud<point_os::PointcloudXYZITR>(pubBobPoints, pointCloud, msg->header.stamp, SENSOR_FRAME);
 
+        removeClosestFarestPointCloud(*pointCloud, *pointCloud, config_.min_range, config_.max_range);
         lidarBuf.addMeas(pointCloud, msg->header.stamp.sec + msg->header.stamp.nanosec*1e-9);
 
         m_buf.unlock();
