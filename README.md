@@ -444,7 +444,7 @@ The project is sponsored by the [National Robotics Engineering Center](https://w
 
 ## Relevant Links
 
-The SLAM module is based on [an upgraded implementation of LOAM](https://github.com/shibowing/Arise_Slam).
+The SLAM module is an upgraded implementation of [LOAM](https://github.com/cuitaixiang/LOAM_NOTED).
 
 The base autonomy system is based on [Autonomous Exploration Development Environment](https://www.cmu-exploration.com).
 
