@@ -30,7 +30,7 @@ cd autonomy_stack_diablo_setup
 git checkout humble
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-skip arise_slam_mid360 arise_slam_mid360_msgs livox_ros_driver2 receive_theta
 ```
-Download a [Unity environment model for Diablo setup](https://drive.google.com/drive/folders/1vAsyT_g1kLnexpgNawolVu3CO2NHYDB-?usp=sharing) and unzip the files to the 'src/base_autonomy/vehicle_simulator/mesh/unity' folder. The environment model files should look like below. For computers without a powerful GPU, please try the 'without_360_camera' version for a higher rendering rate.
+Download a [Unity environment model for Diablo setup](https://drive.google.com/drive/folders/1wixBcO8gEiqXzO1qLG_Ck-XmOFqxYz6s?usp=sharing) and unzip the files to the 'src/base_autonomy/vehicle_simulator/mesh/unity' folder. The environment model files should look like below. For computers without a powerful GPU, please try the 'without_360_camera' version for a higher rendering rate.
 
 mesh/<br>
 &nbsp;&nbsp;&nbsp;&nbsp;unity/<br>
@@ -374,7 +374,7 @@ source install/setup.bash
 ros2 bag play 'bagfolder_path/bagfile_name.db3'
 ```
 
-[A few example bagfiles are provided here](https://drive.google.com/drive/folders/1vAsyT_g1kLnexpgNawolVu3CO2NHYDB-?usp=sharing). Users can use the bagfiles to test the system offline without accessing the real-robot setup. Note that for bagfile processing, please follow the System Setup section above to compile the repository fully.
+[A few example bagfiles are provided here](https://drive.google.com/drive/folders/1wixBcO8gEiqXzO1qLG_Ck-XmOFqxYz6s?usp=sharing). Users can use the bagfiles to test the system offline without accessing the real-robot setup. Note that for bagfile processing, please follow the System Setup section above to compile the repository fully.
 
 ## Notes
 
